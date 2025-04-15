@@ -41,7 +41,7 @@ class Statistic:
 
 class Experiment:
 
-    def __init__(self, repetitions=1_000, nTeams=2, maxStreak=3, timeCreated:datetime.datetime=datetime.datetime.now()) -> None: 
+    def __init__(self, repetitions=1_000, nTeams=2, maxStreak=3, timeCreated:datetime.datetime=datetime.datetime.now(), randomSeed:int=1) -> None: 
         self.NREPETITIONS = repetitions
         self.NTEAMS = nTeams
         self.NROUNDS = 2 * (self.NTEAMS-1)
@@ -52,6 +52,7 @@ class Experiment:
         self.doubleRoundRobinViolations = {}
         self.noRepeatViolations = {}
         self.timeCreated = timeCreated
+        self.randomSeed = randomSeed
 
     def gameIdToTeamIds(self, gid):
         host = gid // (self.NTEAMS-1)
@@ -135,14 +136,14 @@ class Experiment:
             }, file)
 
 def executeExperiment(exp:Experiment):
-    random.seed(1)
+    random.seed(exp.randomSeed)
     exp.execute()
     return exp
 
 def main():
     time = datetime.datetime.now()
     pool = ProcessPoolExecutor()
-    experiments = [Experiment(repetitions=1_000, nTeams=nTeams, timeCreated=time, maxStreak=maxStreak) for nTeams in range(4, 52, 2) for maxStreak in range(1, 7)]
+    experiments = [Experiment(repetitions=1_000, nTeams=nTeams, timeCreated=time, maxStreak=maxStreak, randomSeed=nTeams+50*maxStreak) for nTeams in range(4, 52, 2) for maxStreak in range(1, 7)]
     experiments = pool.map(executeExperiment, experiments)
     pool.shutdown()
     
