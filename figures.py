@@ -26,15 +26,6 @@ result_file = "output/2026-01-21-10-22-all-results.json"
 with open(result_file,'r') as f:
     results = json.load(f)
 
-violations = ["maxStreakViolations", "noRepeatViolations", "doubleRoundRobinViolations"]
-teamSizes = [i for i in range(4, 52, 2)]
-
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import matplotlib.lines as mlines
-import numpy as np
-
-violations = ["maxStreakViolations", "noRepeatViolations", "doubleRoundRobinViolations"]
 teamSizes = [i for i in range(4, 52, 2)]
 
 def averageNumberViolations(data:dict[str,int]):
