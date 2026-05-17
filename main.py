@@ -41,12 +41,13 @@ class Statistic:
 
 class Experiment:
 
-    def __init__(self, repetitions=1_000, nTeams=2, maxStreak=3, timeCreated:datetime.datetime=datetime.datetime.now(), randomSeed:int=1) -> None: 
+    def __init__(self, repetitions=1_000, nTeams=2, maxStreak=3, noRepeatRounds=1, timeCreated:datetime.datetime=datetime.datetime.now(), randomSeed:int=1) -> None: 
         self.NREPETITIONS = repetitions
         self.NTEAMS = nTeams
         self.NROUNDS = 2 * (self.NTEAMS-1)
         self.NGAMES = self.NTEAMS * (self.NTEAMS-1)
         self.NGAMESPERROUND = self.NGAMES // self.NROUNDS
+        self.NO_REPEAT_ROUNDS = noRepeatRounds
         self.MAXSTREAK = maxStreak
         self.maxStreakViolations = {}
         self.doubleRoundRobinViolations = {}
@@ -86,15 +87,15 @@ class Experiment:
 
     def countNoRepeatViolations(self, tournament):
         violations = 0
-        for nextRoundNr in range(1, self.NROUNDS):
-            currentRoundNr = nextRoundNr-1
-            nextRound = tournament[nextRoundNr]
+        for currentRoundNr in range(0, self.NROUNDS-self.NO_REPEAT_ROUNDS):
             currentRound = tournament[currentRoundNr]
-            for (host, guest) in currentRound:
-                if (host, guest) in nextRound:
-                    violations+=1
-                if (guest, host) in nextRound:
-                    violations+=1
+            for otherRoundNr in range(currentRoundNr+1, currentRoundNr + self.NO_REPEAT_ROUNDS + 1): # range(1,4) -> 1,2,3 => range is not inclusive for 2nd parameter! That's why there is the `+ 1`
+                otherRound = tournament[otherRoundNr]
+                for (host, guest) in currentRound:
+                    if (host, guest) in otherRound:
+                        violations+=1
+                    elif (guest, host) in otherRound:
+                        violations+=1
         return violations
 
     def countMaxStreakViolations(self, tournament):
@@ -128,11 +129,12 @@ class Experiment:
         self.saveResults()
 
     def saveResults(self):
-        with open("output/{}-{}teams-{}reps-maxStreak{}.json".format(self.timeCreated.strftime("%Y%m%d-%H:%M"), self.NTEAMS, self.NREPETITIONS, self.MAXSTREAK), "w") as file:
+        with open("output/{}-{}teams-{}reps-maxStreak{}-noRepeatRounds{}.json".format(self.timeCreated.strftime("%Y-%m-%d-%H-%M"), self.NTEAMS, self.NREPETITIONS, self.MAXSTREAK, self.NO_REPEAT_ROUNDS), "w") as file:
             json.dump({
                 "maxStreakViolations"        : self.maxStreakViolations,
                 "noRepeatViolations"         : self.noRepeatViolations,
-                "doubleRoundRobinViolations" : self.doubleRoundRobinViolations
+                "doubleRoundRobinViolations" : self.doubleRoundRobinViolations,
+                "seed": self.randomSeed
             }, file)
 
 def executeExperiment(exp:Experiment):
@@ -140,23 +142,38 @@ def executeExperiment(exp:Experiment):
     exp.execute()
     return exp
 
+def randomSeedGenerator():
+    i = 0
+    while True:
+        yield i
+        i += 1
+
 def main():
     time = datetime.datetime.now()
     pool = ProcessPoolExecutor()
-    experiments = [Experiment(repetitions=1_000, nTeams=nTeams, timeCreated=time, maxStreak=maxStreak, randomSeed=nTeams+50*maxStreak) for nTeams in range(4, 52, 2) for maxStreak in range(1, 7)]
+    seedGenerator = randomSeedGenerator()
+    experiments = [Experiment(repetitions=1_000, 
+                              nTeams=nTeams, 
+                              noRepeatRounds=noRepeatRounds, 
+                              timeCreated=time, 
+                              maxStreak=maxStreak, 
+                              randomSeed=next(seedGenerator)) 
+                        for nTeams in range(4, 52, 2) 
+                        for maxStreak in range(1, 7) 
+                        for noRepeatRounds in range(1, 7)]
     experiments = pool.map(executeExperiment, experiments)
     pool.shutdown()
     
     all_results = {}
     for exp in experiments:
-        streak_results = all_results.get("maxStreak={}".format(exp.MAXSTREAK), {})
+        streak_results = all_results.get("maxStreak={};noRepeatRounds={}".format(exp.MAXSTREAK, exp.NO_REPEAT_ROUNDS), {})
         streak_results["teams={}".format(exp.NTEAMS)] = {
             "maxStreakViolations":exp.maxStreakViolations,
             "noRepeatViolations":exp.noRepeatViolations,
             "doubleRoundRobinViolations":exp.doubleRoundRobinViolations
         }
-        all_results["maxStreak={}".format(exp.MAXSTREAK)] = streak_results
-    with open("output/{}-all-results.json".format(time.strftime("%Y%m%d-%H:%M")), "w" ) as file:
+        all_results["maxStreak={};noRepeatRounds={}".format(exp.MAXSTREAK, exp.NO_REPEAT_ROUNDS)] = streak_results
+    with open("output/{}-all-results.json".format(time.strftime("%Y-%m-%d-%H-%M")), "w" ) as file:
         json.dump(all_results, file)
 if __name__ == "__main__":
     main()
