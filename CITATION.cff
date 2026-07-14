@@ -1,0 +1,38 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  The Traveling Tournament Problem: Constraint Violations
+  for Different Values of NoRepeat and MaxStreak
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Lukas
+    family-names: Hassel
+    orcid: 'https://orcid.org/0009-0003-1671-4382'
+  - given-names: Guilherme
+    family-names: Nakahata
+    orcid: 'https://orcid.org/0000-0001-6469-8653'
+  - given-names: Ruben
+    family-names: Horn
+    orcid: 'https://orcid.org/0000-0001-6643-5582'
+  - given-names: Daan
+    family-names: van den Berg
+    orcid: 'https://orcid.org/0000-0001-5060-3342'
+repository-code: 'https://github.com/LukasHassel/TravelingTournamentProblem'
+abstract: >-
+  This repository stores the code used to conduct the
+  experiments and generate the diagrams used in our
+  publication.
+keywords:
+  - Traveling Tournament Problem
+  - NP-hard
+  - TTP
+  - Sports
+  - Scheduling
+license: MIT
+version: 1.0.0
+date-released: '2026-05-17'
