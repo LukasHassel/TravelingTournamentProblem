@@ -1,6 +1,6 @@
 # Traveling Tournament Problem (TTP)
 
-![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)
 
@@ -16,7 +16,7 @@ The goal is to schedule a double round-robin tournament (each team plays every o
 
 ### Prerequisites
 
-- Python 3.x
+- Python 3.12+
 - Required dependencies (install via pip):
 
 ```bash
